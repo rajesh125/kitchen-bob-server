@@ -1,18 +1,13 @@
-FROM alpine/git as clone
-ARG url
-WORKDIR /app
-RUN git clone https://github.com/RobYed/kitchen-bob-server
+# Start with a base image containing Java runtime
+FROM openjdk:8-jdk-alpine
 
-FROM maven:3.2-jdk-8 as build
-WORKDIR /app
-COPY --from=clone /app/kitchen-bob-server /app
-RUN mvn package
-
-FROM openjdk:8-jre-alpine
-ARG version
-ENV artifact kitchenbob-${version}.jar
-WORKDIR /app
-COPY --from=build /app/target/${artifact} /app
+# Make port 8080 available to the world outside this container
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c"]
-CMD ["java -jar ${artifact}"]
+
+# Add the application's jar to the container
+COPY target/kitchenbob-*.jar kitchenbob.jar
+
+# Run the jar file 
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=test", "kitchenbob.jar"]
+
+
